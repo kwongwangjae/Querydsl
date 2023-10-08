@@ -12,12 +12,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.example.querydsl.dto.MemberDto;
+import com.example.querydsl.dto.QMemberDto;
+import com.example.querydsl.dto.UserDto;
 import com.example.querydsl.entity.Member;
 import com.example.querydsl.entity.QMember;
 import com.example.querydsl.entity.QTeam;
 import com.example.querydsl.entity.Team;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -31,8 +39,10 @@ public class QuerydslBasicTest {
 	JPAQueryFactory queryFactory;
 	@PersistenceContext
 	EntityManager em;
+
 	@BeforeEach
 	public void before() {
+		this.queryFactory = new JPAQueryFactory(em); //초기화
 		Team teamA = new Team("teamA");
 		Team teamB = new Team("teamB");
 		em.persist(teamA);
@@ -80,7 +90,7 @@ public class QuerydslBasicTest {
 	}
 
 	@Test
-	public void page(){
+	public void page() {
 		// //List
 		// List<Member> fetch = queryFactory
 		// 	.selectFrom(member)
@@ -147,7 +157,6 @@ public class QuerydslBasicTest {
 		//여기서 where절이 들어가면 성능상 어려운 부분이 생길 수 있어 분리해야할 수도 있다.
 	}
 
-
 	/**
 	 * JPQL
 	 * select
@@ -213,4 +222,132 @@ public class QuerydslBasicTest {
 			.extracting("username")
 			.containsExactly("member1", "member2");
 	}
+
+	@Test
+	public void findDtoBySetter() {
+		List<MemberDto> result = queryFactory
+			.select(Projections.bean(MemberDto.class,
+				member.username,
+				member.age))
+			.from(member)
+			.fetch();
+		for (MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+
+	@Test
+	public void findDtoByField() { //getter, setter가 필요가 없음
+		List<MemberDto> result = queryFactory
+			.select(Projections.fields(MemberDto.class,
+				member.username,
+				member.age))
+			.from(member)
+			.fetch();
+		for (MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+
+	@Test
+	public void findDtoByConstructor() { //생성된 dto와 같아야 함 생성자가 호출됨, runtime오류가 나옴(마지막에 오류가 발생)
+		List<MemberDto> result = queryFactory
+			.select(Projections.constructor(MemberDto.class,
+				member.username,
+				member.age))
+			.from(member)
+			.fetch();
+		for (MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+
+	@Test
+	public void findUserDto(){
+		QMember memberSub = new QMember("memberSub");
+		List<UserDto> result = queryFactory
+			.select(Projections.fields(UserDto.class,
+					member.username.as("name"), //별칭이 다를 때 as로 별칭을 맞춤
+
+
+					ExpressionUtils.as( //property나 field 접근생성 방식에서 이름이 다를 때 해결, 서브쿼리일 때
+						JPAExpressions
+							.select(memberSub.age.max())
+							.from(memberSub), "age")
+				)
+			).from(member)
+			.fetch();
+	}
+
+	@Test
+	public void findDtoByQueryProjection(){ //Qdto에 있는 내용을 가져와서 해줌, 미리 오류를 발생시켜 줌
+		List<MemberDto> result = queryFactory //constructor이랑 비슷하긴 함
+			.select(new QMemberDto(member.username, member.age))
+			.from(member)
+			.fetch();
+
+		for(MemberDto memberDto : result){
+			System.out.println(memberDto);
+		}
+		//단점: Q파일이 있어야 함, dto자체가 querydsl에 의존성을 가지게 됨
+	}
+
+	@Test
+	public void dynamicQuery_BooleanBuilder() throws Exception { //본인이 직접 q파일을 생성함 그래서 이미 만들어져있으면 문제가 발생
+		String usernameParam = "member1";
+		Integer ageParam = 10;
+
+		List<Member> result = searchMember1(usernameParam, ageParam);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+	}
+	private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+		BooleanBuilder builder = new BooleanBuilder();
+		if (usernameCond != null) {
+			builder.and(member.username.eq(usernameCond));
+		}
+		if (ageCond != null) {
+			builder.and(member.age.eq(ageCond));
+		}
+		return queryFactory
+			.selectFrom(member)
+			.where(builder)
+			.fetch();
+	}
+
+
+	@Test
+	public void 동적쿼리_WhereParam() throws Exception { //where조건에서 null은 무시된다.
+		String usernameParam = "member1";
+		Integer ageParam = 10;
+		List<Member> result = searchMember2(usernameParam, ageParam);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+	}
+	private List<Member> searchMember2(String usernameCond, Integer ageCond) {
+		return queryFactory
+			.selectFrom(member)
+			.where(usernameEq(usernameCond), ageEq(ageCond))  //개발할 때는 어차피 여기가 중요하다.
+			//.where(allEq(usernameCond, ageCond)) 조립이 가능
+			.fetch();
+	}
+	private BooleanExpression usernameEq(String usernameCond) { //메서드를 다른 쿼리에서도 재활용 할 수 있다.
+		return usernameCond != null ? member.username.eq(usernameCond) : null;
+	}
+	private BooleanExpression ageEq(Integer ageCond) { //조립을 위해 BooleanExpression사용 원래 Predicate 였음
+		return ageCond != null ? member.age.eq(ageCond) : null;
+	}
+
+	//광고 상태 isVaild, 날짜가 IN -> composition이 가능: isServiceable
+
+	// private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+	// 	return isValid(usernameCond).and(DateBetweenIn(ageCond));
+	// }
+
+	private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+		return usernameEq(usernameCond).and(ageEq(ageCond));
+	}
+
+
+
+
 }
+
