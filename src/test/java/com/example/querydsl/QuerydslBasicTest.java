@@ -7,16 +7,19 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.querydsl.dto.MemberDto;
+import com.example.querydsl.dto.QMemberDto;
 import com.example.querydsl.dto.UserDto;
 import com.example.querydsl.entity.Member;
 import com.example.querydsl.entity.QMember;
 import com.example.querydsl.entity.QTeam;
 import com.example.querydsl.entity.Team;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
@@ -246,7 +249,7 @@ public class QuerydslBasicTest {
 	}
 
 	@Test
-	public void findDtoByConstructor() { //생성된 dto와 같아야 함 생성자가 호출됨
+	public void findDtoByConstructor() { //생성된 dto와 같아야 함 생성자가 호출됨, runtime오류가 나옴(마지막에 오류가 발생)
 		List<MemberDto> result = queryFactory
 			.select(Projections.constructor(MemberDto.class,
 				member.username,
@@ -273,8 +276,41 @@ public class QuerydslBasicTest {
 				)
 			).from(member)
 			.fetch();
+	}
 
+	@Test
+	public void findDtoByQueryProjection(){ //Qdto에 있는 내용을 가져와서 해줌, 미리 오류를 발생시켜 줌
+		List<MemberDto> result = queryFactory //constructor이랑 비슷하긴 함
+			.select(new QMemberDto(member.username, member.age))
+			.from(member)
+			.fetch();
 
+		for(MemberDto memberDto : result){
+			System.out.println(memberDto);
+		}
+		//단점: Q파일이 있어야 함, dto자체가 querydsl에 의존성을 가지게 됨
+	}
+
+	@Test
+	public void dynamicQuery_BooleanBuilder() throws Exception { //본인이 직접 q파일을 생성함 그래서 이미 만들어져있으면 문제가 발생
+		String usernameParam = "member1";
+		Integer ageParam = 10;
+
+		List<Member> result = searchMember1(usernameParam, ageParam);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+	}
+	private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+		BooleanBuilder builder = new BooleanBuilder();
+		if (usernameCond != null) {
+			builder.and(member.username.eq(usernameCond));
+		}
+		if (ageCond != null) {
+			builder.and(member.age.eq(ageCond));
+		}
+		return queryFactory
+			.selectFrom(member)
+			.where(builder)
+			.fetch();
 	}
 
 
