@@ -24,6 +24,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -311,6 +312,38 @@ public class QuerydslBasicTest {
 			.selectFrom(member)
 			.where(builder)
 			.fetch();
+	}
+
+
+	@Test
+	public void 동적쿼리_WhereParam() throws Exception { //where조건에서 null은 무시된다.
+		String usernameParam = "member1";
+		Integer ageParam = 10;
+		List<Member> result = searchMember2(usernameParam, ageParam);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+	}
+	private List<Member> searchMember2(String usernameCond, Integer ageCond) {
+		return queryFactory
+			.selectFrom(member)
+			.where(usernameEq(usernameCond), ageEq(ageCond))  //개발할 때는 어차피 여기가 중요하다.
+			//.where(allEq(usernameCond, ageCond)) 조립이 가능
+			.fetch();
+	}
+	private BooleanExpression usernameEq(String usernameCond) { //메서드를 다른 쿼리에서도 재활용 할 수 있다.
+		return usernameCond != null ? member.username.eq(usernameCond) : null;
+	}
+	private BooleanExpression ageEq(Integer ageCond) { //조립을 위해 BooleanExpression사용 원래 Predicate 였음
+		return ageCond != null ? member.age.eq(ageCond) : null;
+	}
+
+	//광고 상태 isVaild, 날짜가 IN -> composition이 가능: isServiceable
+
+	// private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+	// 	return isValid(usernameCond).and(DateBetweenIn(ageCond));
+	// }
+
+	private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+		return usernameEq(usernameCond).and(ageEq(ageCond));
 	}
 
 
