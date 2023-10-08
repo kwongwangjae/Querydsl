@@ -7,17 +7,21 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.example.querydsl.dto.MemberDto;
+import com.example.querydsl.dto.UserDto;
 import com.example.querydsl.entity.Member;
 import com.example.querydsl.entity.QMember;
 import com.example.querydsl.entity.QTeam;
 import com.example.querydsl.entity.Team;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -31,8 +35,10 @@ public class QuerydslBasicTest {
 	JPAQueryFactory queryFactory;
 	@PersistenceContext
 	EntityManager em;
+
 	@BeforeEach
 	public void before() {
+		this.queryFactory = new JPAQueryFactory(em); //초기화
 		Team teamA = new Team("teamA");
 		Team teamB = new Team("teamB");
 		em.persist(teamA);
@@ -80,7 +86,7 @@ public class QuerydslBasicTest {
 	}
 
 	@Test
-	public void page(){
+	public void page() {
 		// //List
 		// List<Member> fetch = queryFactory
 		// 	.selectFrom(member)
@@ -147,7 +153,6 @@ public class QuerydslBasicTest {
 		//여기서 where절이 들어가면 성능상 어려운 부분이 생길 수 있어 분리해야할 수도 있다.
 	}
 
-
 	/**
 	 * JPQL
 	 * select
@@ -213,4 +218,67 @@ public class QuerydslBasicTest {
 			.extracting("username")
 			.containsExactly("member1", "member2");
 	}
+
+	@Test
+	public void findDtoBySetter() {
+		List<MemberDto> result = queryFactory
+			.select(Projections.bean(MemberDto.class,
+				member.username,
+				member.age))
+			.from(member)
+			.fetch();
+		for (MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+
+	@Test
+	public void findDtoByField() { //getter, setter가 필요가 없음
+		List<MemberDto> result = queryFactory
+			.select(Projections.fields(MemberDto.class,
+				member.username,
+				member.age))
+			.from(member)
+			.fetch();
+		for (MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+
+	@Test
+	public void findDtoByConstructor() { //생성된 dto와 같아야 함 생성자가 호출됨
+		List<MemberDto> result = queryFactory
+			.select(Projections.constructor(MemberDto.class,
+				member.username,
+				member.age))
+			.from(member)
+			.fetch();
+		for (MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+
+	@Test
+	public void findUserDto(){
+		QMember memberSub = new QMember("memberSub");
+		List<UserDto> result = queryFactory
+			.select(Projections.fields(UserDto.class,
+					member.username.as("name"), //별칭이 다를 때 as로 별칭을 맞춤
+
+
+					ExpressionUtils.as( //property나 field 접근생성 방식에서 이름이 다를 때 해결, 서브쿼리일 때
+						JPAExpressions
+							.select(memberSub.age.max())
+							.from(memberSub), "age")
+				)
+			).from(member)
+			.fetch();
+
+
+	}
+
+
+
+
 }
+
