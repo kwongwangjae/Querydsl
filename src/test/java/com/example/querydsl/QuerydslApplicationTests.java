@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 
-import com.example.querydsl.entity.Hello;
+import com.example.querydsl.domain.yhcourse.entity.Hello;
 import com.example.querydsl.entity.QHello;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 

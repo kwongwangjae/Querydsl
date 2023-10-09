@@ -1,12 +1,13 @@
 package com.example.querydsl.entity;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
+
+import com.example.querydsl.domain.yhcourse.entity.Member;
+import com.example.querydsl.domain.yhcourse.entity.Team;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

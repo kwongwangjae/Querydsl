@@ -12,13 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.querydsl.dto.MemberDto;
+import com.example.querydsl.domain.yhcourse.dto.MemberDto;
 import com.example.querydsl.dto.QMemberDto;
-import com.example.querydsl.dto.UserDto;
-import com.example.querydsl.entity.Member;
+import com.example.querydsl.domain.yhcourse.dto.UserDto;
+import com.example.querydsl.domain.yhcourse.entity.Member;
 import com.example.querydsl.entity.QMember;
 import com.example.querydsl.entity.QTeam;
-import com.example.querydsl.entity.Team;
+import com.example.querydsl.domain.yhcourse.entity.Team;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;

@@ -1,4 +1,4 @@
-package com.example.querydsl.repository;
+package com.example.querydsl.domain.yhcourse.repository;
 
 import static com.example.querydsl.entity.QMember.*;
 import static com.example.querydsl.entity.QTeam.*;
@@ -8,13 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
-import com.example.querydsl.dto.MemberSearchCondition;
-import com.example.querydsl.dto.MemberTeamDto;
+import com.example.querydsl.domain.yhcourse.dto.MemberSearchCondition;
+import com.example.querydsl.domain.yhcourse.dto.MemberTeamDto;
 import com.example.querydsl.dto.QMemberTeamDto;
-import com.example.querydsl.entity.Member;
-import com.querydsl.core.BooleanBuilder;
+import com.example.querydsl.domain.yhcourse.entity.Member;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
