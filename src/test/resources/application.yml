@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local
+    active: test
     #개발서버는 dev, 운영은 real
   datasource:
     url: jdbc:h2:~/dev
