@@ -1,4 +1,4 @@
-package com.example.querydsl.entity;
+package com.example.querydsl.domain.yhcourse.entity;
 
 import java.util.ArrayList;
 import java.util.List;

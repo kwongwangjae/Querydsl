@@ -1,4 +1,4 @@
-package com.example.querydsl.dto;
+package com.example.querydsl.domain.yhcourse.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 

@@ -1,4 +1,4 @@
-package com.example.querydsl.entity;
+package com.example.querydsl.domain.yhcourse.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
