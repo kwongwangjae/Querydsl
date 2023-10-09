@@ -13,6 +13,8 @@ import com.example.querydsl.domain.travel.dto.response.TravelSearchResponseDto;
 import com.example.querydsl.domain.travel.entity.QTravel;
 import com.example.querydsl.domain.travel.entity.Travel;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -57,5 +59,43 @@ public class TravelRepositoryImpl implements TravelRepositoryCustom{
 			.fetch();
 	}
 
+	public List<TravelResponseDto> searchW(TravelSearchResponseDto travelSearchResponseDto){
+		return queryFactory
+			.select(new QTravelResponseDto(
+				travel.id.as("travelId"),
+				travel.arriveLocation,
+				travel.startDate,
+				travel.endDate,
+				travel.startLocation,
+				travel.number))
+			.from(travel)
+			.where(arriveLocationEq(travelSearchResponseDto.getArriveLocation()),
+				startDateEq(travelSearchResponseDto.getStartDate()),
+				endDateEq(travelSearchResponseDto.getEndDate()),
+				startLocationEq(travelSearchResponseDto.getStartLocation()),
+				numberEq(travelSearchResponseDto.getNumber()))
+			.fetch();
+	}
+
+	private BooleanExpression arriveLocationEq(String arriveLocation) {
+		return hasText(arriveLocation)? travel.arriveLocation.eq(arriveLocation): null;
+	}
+
+
+	private BooleanExpression numberEq(Integer number) {
+		return number != null ? travel.number.goe(number) : null;
+	}
+
+	private BooleanExpression startLocationEq(String startLocation) {  //BooleanExpression 조합을 위해서 변경
+		return hasText(startLocation)? travel.arriveLocation.eq(startLocation): null;
+	}
+
+	private BooleanExpression endDateEq(String endDate) {
+		return hasText(endDate)? travel.arriveLocation.eq(endDate): null;
+	}
+
+	private BooleanExpression startDateEq(String startDate) {
+		return hasText(startDate)? travel.arriveLocation.eq(startDate): null;
+	}
 
 }
