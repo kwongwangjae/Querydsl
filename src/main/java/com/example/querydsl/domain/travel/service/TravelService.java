@@ -1,9 +1,13 @@
 package com.example.querydsl.domain.travel.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.example.querydsl.domain.travel.dto.request.TravelCreateRequestDto;
 import com.example.querydsl.domain.travel.dto.response.TravelResponseDto;
+import com.example.querydsl.domain.travel.dto.response.TravelSearchResponseDto;
 import com.example.querydsl.domain.travel.entity.Travel;
 import com.example.querydsl.domain.travel.mapper.TravelMapper;
 import com.example.querydsl.domain.travel.repository.TravelRepository;
@@ -20,5 +24,6 @@ public class TravelService {
 		Travel savedTravel = travelRepository.save(newTravel);
 		return travelMapper.toTravelToDto(savedTravel);
 	}
+
 
 }
