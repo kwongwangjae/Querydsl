@@ -1,45 +1,37 @@
-package com.example.querydsl.domain.yhcourse.repository;
-
-
-import static org.springframework.util.StringUtils.*;
-
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Repository;
-
-import com.example.querydsl.domain.yhcourse.dto.MemberSearchCondition;
-import com.example.querydsl.domain.yhcourse.dto.MemberTeamDto;
-import com.example.querydsl.domain.yhcourse.dto.QMemberTeamDto;
-import com.example.querydsl.domain.yhcourse.entity.Member;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-
-import jakarta.persistence.EntityManager;
-
-@Repository
-public class MemberJpaRepository {
-
-	private final EntityManager em;
-	private final JPAQueryFactory queryFactory;
-	public MemberJpaRepository(EntityManager em) {
-		this.em = em;
-		this.queryFactory = new JPAQueryFactory(em);
-	}
-
-	public void save(Member member) {
-		em.persist(member);
-	}
-	public Optional<Member> findById(Long id) {
-		Member findMember = em.find(Member.class, id);
-		return Optional.ofNullable(findMember);
-	}
-	public List<Member> findAll() {
-		return em.createQuery("select m from Member m", Member.class)
-			.getResultList();
-	}
-
-
+// package com.example.querydsl.domain.yhcourse.repository;
+//
+//
+// import static com.example.querydsl.domain.yhcourse.entity.QMember.*;
+// import static com.example.querydsl.domain.yhcourse.entity.QTeam.*;
+// import static org.springframework.util.StringUtils.*;
+//
+// import java.util.List;
+// import java.util.Optional;
+//
+// import org.springframework.stereotype.Repository;
+//
+// import com.example.querydsl.domain.yhcourse.dto.MemberSearchCondition;
+// import com.example.querydsl.domain.yhcourse.dto.MemberTeamDto;
+// import com.example.querydsl.domain.yhcourse.dto.QMemberTeamDto;
+// import com.example.querydsl.domain.yhcourse.entity.Member;
+// import com.example.querydsl.domain.yhcourse.entity.QMember;
+// import com.example.querydsl.domain.yhcourse.entity.QTeam;
+// import com.querydsl.core.types.dsl.BooleanExpression;
+// import com.querydsl.jpa.impl.JPAQueryFactory;
+//
+// import jakarta.persistence.EntityManager;
+//
+// @Repository
+// public class MemberJpaRepository {
+//
+// 	private final EntityManager em;
+// 	private final JPAQueryFactory queryFactory;
+// 	public MemberJpaRepository(EntityManager em) {
+// 		this.em = em;
+// 		this.queryFactory = new JPAQueryFactory(em);
+// 	}
+//
+//
 // 	public List<MemberTeamDto> search(MemberSearchCondition condition) {
 // 		return queryFactory
 // 			.select(new QMemberTeamDto(
@@ -69,4 +61,4 @@ public class MemberJpaRepository {
 // 		return ageLoe == null ? null : member.age.loe(ageLoe);
 // 	}
 //
- }
+// }
